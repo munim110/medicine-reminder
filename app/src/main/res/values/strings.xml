@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ওষুধের সময়</string>
+
+    <!-- alarm -->
+    <string name="channel_alarm_name">ওষুধের অ্যালার্ম</string>
+    <string name="channel_alarm_desc">ওষুধ খাওয়ার সময় হলে বাজবে</string>
+    <string name="alarm_title">ওষুধ খাওয়ার সময়</string>
+    <string name="alarm_title_at">%1$s — ওষুধ খাওয়ার সময়</string>
+    <string name="alarm_body_loading">ওষুধের তালিকা আসছে…</string>
+    <string name="alarm_body_empty">এই সময়ে কোনো ওষুধ যোগ করা নেই</string>
+    <string name="alarm_hint">ওষুধ খাওয়ার পর নিচের বোতামে চাপ দিন</string>
+
+    <!-- actions -->
+    <string name="action_taken">খাওয়া হয়েছে</string>
+    <string name="action_snooze">১০ মিনিট পরে</string>
+    <string name="action_skip">বাদ দিন</string>
+    <string name="save">সংরক্ষণ</string>
+    <string name="cancel">বাতিল</string>
+    <string name="delete">মুছুন</string>
+    <string name="add">যোগ করুন</string>
+    <string name="grant">অনুমতি দিন</string>
+    <string name="open_settings">সেটিংসে যান</string>
+    <string name="set_time">সময় ঠিক করুন</string>
+
+    <!-- food rules -->
+    <string name="food_empty_stomach">খালি পেটে</string>
+    <string name="food_before">খাবার আগে</string>
+    <string name="food_after">খাবার পরে</string>
+    <string name="food_any">যেকোনো সময়</string>
+
+    <!-- tabs -->
+    <string name="tab_today">আজ</string>
+    <string name="tab_schedule">সময়সূচি</string>
+    <string name="tab_history">ইতিহাস</string>
+    <string name="tab_settings">সেটিংস</string>
+
+    <!-- settings -->
+    <string name="settings_ring_title">অ্যালার্ম কতক্ষণ বাজবে</string>
+    <string name="settings_ring_desc">এই সময় পর নিজে থেকেই থেমে যাবে</string>
+    <string name="settings_retry_title">আবার বাজার বিরতি</string>
+    <string name="settings_retry_desc">কেউ না থামালে এই সময় পরপর আবার বাজবে</string>
+    <string name="settings_giveup_title">কতক্ষণ পর মিস ধরা হবে</string>
+    <string name="settings_giveup_desc">এরপর আর বাজবে না, ইতিহাসে মিস হিসেবে থাকবে</string>
+    <string name="settings_snooze_title">স্নুজের সময়</string>
+    <string name="settings_snooze_desc">স্নুজ চাপলে কতক্ষণ পর আবার বাজবে</string>
+    <string name="minutes_value">%1$s মিনিট</string>
+    <string name="settings_preview_title">যেভাবে কাজ করবে</string>
+    <string name="settings_preview_rings">দুপুর ৩:০০ টার ডোজ হলে %1$s মিনিট করে বাজবে — %2$s</string>
+    <string name="settings_preview_missed">%1$s এ মিস হিসেবে লেখা হবে</string>
+
+    <!-- status -->
+    <string name="status_taken">খাওয়া হয়েছে</string>
+    <string name="status_skipped">বাদ দেওয়া হয়েছে</string>
+    <string name="status_missed">মিস হয়েছে</string>
+    <string name="status_pending">বাকি আছে</string>
+
+    <!-- today -->
+    <string name="today_title">আজকের ওষুধ</string>
+    <string name="time_not_set">সময় ঠিক করা হয়নি</string>
+    <string name="slot_disabled">বন্ধ আছে</string>
+    <string name="today_empty">কোনো সময়সূচি নেই</string>
+
+    <!-- morning prompt -->
+    <string name="morning_prompt_title">সকালের সময় ঠিক করুন</string>
+    <string name="morning_prompt_body">কাগজে সকালের নির্দিষ্ট সময় লেখা ছিল না। অ্যালার্ম চালু করতে সময়টি ঠিক করে দিন।</string>
+
+    <!-- permissions -->
+    <string name="perm_notification_title">নোটিফিকেশনের অনুমতি দরকার</string>
+    <string name="perm_notification_body">অনুমতি ছাড়া অ্যালার্ম দেখানো যাবে না।</string>
+    <string name="perm_exact_title">সঠিক সময়ে অ্যালার্মের অনুমতি দরকার</string>
+    <string name="perm_exact_body">এই অনুমতি ছাড়া অ্যালার্ম দেরিতে বাজতে পারে।</string>
+    <string name="perm_fullscreen_title">পূর্ণ স্ক্রিন অ্যালার্মের অনুমতি দরকার</string>
+    <string name="perm_fullscreen_body">এই অনুমতি ছাড়া ফোন লক থাকলে অ্যালার্মের পর্দা আসবে না।</string>
+    <string name="perm_battery_title">ব্যাটারি সাশ্রয় বন্ধ করুন</string>
+    <string name="perm_battery_body">ব্যাটারি সাশ্রয় চালু থাকলে ফোন অ্যালার্ম আটকে দিতে পারে।</string>
+
+    <!-- schedule editing -->
+    <string name="schedule_title">সময়সূচি</string>
+    <string name="add_medicine">ওষুধ যোগ করুন</string>
+    <string name="medicine_name">ওষুধের নাম</string>
+    <string name="add_slot">নতুন সময় যোগ করুন</string>
+    <string name="slot_label">সময়ের নাম</string>
+    <string name="delete_slot_confirm">এই সময় ও এর সব ওষুধ মুছে ফেলবেন?</string>
+    <string name="delete_medicine_confirm">%1$s মুছে ফেলবেন?</string>
+    <string name="medicine_count">%1$s টি ওষুধ</string>
+
+    <!-- history -->
+    <string name="history_title">ইতিহাস</string>
+    <string name="history_empty">এখনো কোনো তথ্য নেই</string>
+    <string name="history_summary">%1$s দিনে %2$s বার খাওয়া হয়েছে</string>
+</resources>

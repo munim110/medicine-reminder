@@ -1,0 +1,70 @@
+# ---- Gradle ----
+.gradle/
+build/
+/build
+/app/build
+/captures
+.kotlin/
+local.properties
+
+# Keep the Gradle wrapper: it pins the build to Gradle 9.7.0 for everyone.
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+!gradlew
+!gradlew.bat
+
+# ---- Signing keys and secrets — never commit ----
+*.jks
+*.keystore
+keystore.properties
+signing.properties
+secrets.properties
+google-services.json
+/app/google-services.json
+
+# ---- Build outputs ----
+*.apk
+*.aab
+*.aar
+*.ap_
+*.dex
+*.class
+/app/release/
+/app/debug/
+output.json
+
+# ---- Room schemas: intentionally NOT ignored ----
+# app/schemas/ holds the exported database schema history. It must be committed,
+# or Room cannot generate or verify migrations when the schema changes.
+
+# ---- IDE ----
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# ---- Native ----
+.externalNativeBuild/
+.cxx/
+obj/
+
+# ---- Logs, reports, temp ----
+*.log
+/app/lint-baseline.xml
+lint-results*.html
+lint-results*.xml
+lint-results*.sarif
+/reports/
+*.hprof
+*.tmp
+*~
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
