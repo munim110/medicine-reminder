@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.aigeolab.medremind"
+    namespace = "com.medremind.app"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.aigeolab.medremind"
+        applicationId = "com.medremind.app"
         minSdk = 26
         targetSdk = 37
         versionCode = 1

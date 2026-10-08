@@ -1,4 +1,4 @@
-package com.aigeolab.medremind.alarm
+package com.medremind.app.alarm
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -9,8 +9,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import com.aigeolab.medremind.R
-import com.aigeolab.medremind.ui.AlarmActivity
+import com.medremind.app.R
+import com.medremind.app.ui.AlarmActivity
 
 object Notifications {
 

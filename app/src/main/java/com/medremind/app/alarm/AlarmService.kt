@@ -1,4 +1,4 @@
-package com.aigeolab.medremind.alarm
+package com.medremind.app.alarm
 
 import android.Manifest
 import android.app.Service
@@ -19,9 +19,9 @@ import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
-import com.aigeolab.medremind.R
-import com.aigeolab.medremind.data.ScheduleRepository
-import com.aigeolab.medremind.ui.foodRuleLabel
+import com.medremind.app.R
+import com.medremind.app.data.ScheduleRepository
+import com.medremind.app.ui.foodRuleLabel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -222,8 +222,8 @@ class AlarmService : Service() {
 
     companion object {
         private const val TAG = "AlarmService"
-        private const val ACTION_START = "com.aigeolab.medremind.RING"
-        private const val ACTION_STOP = "com.aigeolab.medremind.SILENCE"
+        private const val ACTION_START = "com.medremind.app.RING"
+        private const val ACTION_STOP = "com.medremind.app.SILENCE"
 
         /** Fallback ring length used only if settings cannot be read. */
         private const val DEFAULT_RING_MILLIS = 2 * 60_000L

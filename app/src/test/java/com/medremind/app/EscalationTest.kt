@@ -1,6 +1,6 @@
-package com.aigeolab.medremind
+package com.medremind.app
 
-import com.aigeolab.medremind.data.AlarmSettings
+import com.medremind.app.data.AlarmSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull

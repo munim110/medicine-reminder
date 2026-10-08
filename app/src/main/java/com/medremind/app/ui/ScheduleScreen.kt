@@ -1,4 +1,4 @@
-package com.aigeolab.medremind.ui
+package com.medremind.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,9 +33,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.aigeolab.medremind.R
-import com.aigeolab.medremind.data.DoseGroup
-import com.aigeolab.medremind.data.DoseItem
+import com.medremind.app.R
+import com.medremind.app.data.DoseGroup
+import com.medremind.app.data.DoseItem
 
 @Composable
 fun ScheduleScreen(vm: MedViewModel, modifier: Modifier = Modifier) {

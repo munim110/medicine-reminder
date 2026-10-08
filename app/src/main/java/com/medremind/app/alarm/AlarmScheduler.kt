@@ -1,4 +1,4 @@
-package com.aigeolab.medremind.alarm
+package com.medremind.app.alarm
 
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -7,9 +7,9 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.util.Log
-import com.aigeolab.medremind.MainActivity
-import com.aigeolab.medremind.data.DoseGroup
-import com.aigeolab.medremind.data.ScheduleRepository
+import com.medremind.app.MainActivity
+import com.medremind.app.data.DoseGroup
+import com.medremind.app.data.ScheduleRepository
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -22,8 +22,8 @@ import java.time.ZoneId
  */
 object AlarmScheduler {
 
-    const val EXTRA_GROUP_ID = "com.aigeolab.medremind.GROUP_ID"
-    const val EXTRA_SCHEDULED_AT = "com.aigeolab.medremind.SCHEDULED_AT"
+    const val EXTRA_GROUP_ID = "com.medremind.app.GROUP_ID"
+    const val EXTRA_SCHEDULED_AT = "com.medremind.app.SCHEDULED_AT"
 
     private const val TAG = "AlarmScheduler"
     private const val SHOW_INTENT_OFFSET = 100_000
@@ -121,7 +121,7 @@ object AlarmScheduler {
 
     private fun retryIntent(context: Context, groupId: Long, scheduledAt: Long): PendingIntent {
         val intent = Intent(context, RetryReceiver::class.java).apply {
-            action = "com.aigeolab.medremind.DOSE_RETRY"
+            action = "com.medremind.app.DOSE_RETRY"
             data = Uri.parse("medremind://retry/$groupId")
             putExtra(EXTRA_GROUP_ID, groupId)
             putExtra(EXTRA_SCHEDULED_AT, scheduledAt)
@@ -151,7 +151,7 @@ object AlarmScheduler {
      */
     private fun alarmIntent(context: Context, groupId: Long, scheduledAt: Long): PendingIntent {
         val intent = Intent(context, AlarmReceiver::class.java).apply {
-            action = "com.aigeolab.medremind.DOSE_DUE"
+            action = "com.medremind.app.DOSE_DUE"
             data = Uri.parse("medremind://dose/$groupId")
             putExtra(EXTRA_GROUP_ID, groupId)
             putExtra(EXTRA_SCHEDULED_AT, scheduledAt)

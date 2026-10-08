@@ -1,0 +1,19 @@
+{
+  "auth": {
+    "providers": {
+      "anonymous": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "MedRemind",
+        "supportEmail": "munim987654321@gmail.com",
+        "authorizedRedirectUris": [
+          "https://medremind-7e401.firebaseapp.com/__/auth/handler"
+        ]
+      }
+    }
+  },
+  "firestore": {
+    "database": "(default)",
+    "location": "asia-south1",
+    "rules": "firestore.rules"
+  }
+}

@@ -1,4 +1,4 @@
-package com.aigeolab.medremind.data
+package com.medremind.app.data
 
 import android.content.Context
 import java.time.LocalDate

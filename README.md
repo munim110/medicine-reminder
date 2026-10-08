@@ -102,14 +102,14 @@ Emulator:
 
 ```powershell
 emulator -avd Pixel_9_API37
-adb shell pm grant com.aigeolab.medremind android.permission.POST_NOTIFICATIONS
-adb shell appops set com.aigeolab.medremind USE_FULL_SCREEN_INTENT allow
+adb shell pm grant com.medremind.app android.permission.POST_NOTIFICATIONS
+adb shell appops set com.medremind.app USE_FULL_SCREEN_INTENT allow
 ```
 
 Inspect the database on a debug build:
 
 ```powershell
-adb shell "run-as com.aigeolab.medremind sqlite3 databases/medremind.db 'SELECT * FROM dose_logs;'"
+adb shell "run-as com.medremind.app sqlite3 databases/medremind.db 'SELECT * FROM dose_logs;'"
 ```
 
 ### Testing the escalation quickly
@@ -117,7 +117,7 @@ adb shell "run-as com.aigeolab.medremind sqlite3 databases/medremind.db 'SELECT 
 Compress the timeline instead of waiting 30 minutes:
 
 ```powershell
-adb shell "run-as com.aigeolab.medremind sqlite3 databases/medremind.db 'UPDATE settings SET ringSeconds=60, retryIntervalSeconds=120, giveUpSeconds=300;'"
+adb shell "run-as com.medremind.app sqlite3 databases/medremind.db 'UPDATE settings SET ringSeconds=60, retryIntervalSeconds=120, giveUpSeconds=300;'"
 ```
 
 ## Toolchain
@@ -131,7 +131,7 @@ Room 2.8.4 + KSP 2.3.11 · compileSdk/targetSdk 37 · minSdk 26 · JDK 21.
 ## Layout
 
 ```
-app/src/main/java/com/aigeolab/medremind/
+app/src/main/java/com/medremind/app/
   MainActivity.kt          tab host (আজ / সময়সূচি / ইতিহাস / সেটিংস)
   MedRemindApp.kt          channels, startup reconcile + reschedule
   data/                    Room entities, DAO, repository, first-run seed

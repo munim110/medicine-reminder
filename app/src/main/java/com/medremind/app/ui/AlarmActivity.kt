@@ -1,4 +1,4 @@
-package com.aigeolab.medremind.ui
+package com.medremind.app.ui
 
 import android.content.Context
 import android.content.Intent
@@ -36,14 +36,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
-import com.aigeolab.medremind.R
-import com.aigeolab.medremind.alarm.AlarmScheduler
-import com.aigeolab.medremind.alarm.AlarmState
-import com.aigeolab.medremind.alarm.DoseActions
-import com.aigeolab.medremind.data.DoseStatus
-import com.aigeolab.medremind.data.GroupWithItems
-import com.aigeolab.medremind.data.ScheduleRepository
-import com.aigeolab.medremind.ui.theme.MedRemindTheme
+import com.medremind.app.R
+import com.medremind.app.alarm.AlarmScheduler
+import com.medremind.app.alarm.AlarmState
+import com.medremind.app.alarm.DoseActions
+import com.medremind.app.data.DoseStatus
+import com.medremind.app.data.GroupWithItems
+import com.medremind.app.data.ScheduleRepository
+import com.medremind.app.ui.theme.MedRemindTheme
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.launch
 

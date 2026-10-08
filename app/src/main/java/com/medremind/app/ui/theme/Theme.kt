@@ -1,4 +1,4 @@
-package com.aigeolab.medremind.ui.theme
+package com.medremind.app.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

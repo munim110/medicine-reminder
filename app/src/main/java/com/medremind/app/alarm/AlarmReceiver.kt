@@ -1,11 +1,11 @@
-package com.aigeolab.medremind.alarm
+package com.medremind.app.alarm
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.aigeolab.medremind.data.DoseStatus
-import com.aigeolab.medremind.data.ScheduleRepository
+import com.medremind.app.data.DoseStatus
+import com.medremind.app.data.ScheduleRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

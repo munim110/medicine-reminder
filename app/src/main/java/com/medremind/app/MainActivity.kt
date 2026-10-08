@@ -1,4 +1,4 @@
-package com.aigeolab.medremind
+package com.medremind.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -26,12 +26,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.aigeolab.medremind.ui.HistoryScreen
-import com.aigeolab.medremind.ui.MedViewModel
-import com.aigeolab.medremind.ui.ScheduleScreen
-import com.aigeolab.medremind.ui.SettingsScreen
-import com.aigeolab.medremind.ui.TodayScreen
-import com.aigeolab.medremind.ui.theme.MedRemindTheme
+import com.medremind.app.ui.HistoryScreen
+import com.medremind.app.ui.MedViewModel
+import com.medremind.app.ui.ScheduleScreen
+import com.medremind.app.ui.SettingsScreen
+import com.medremind.app.ui.TodayScreen
+import com.medremind.app.ui.theme.MedRemindTheme
 
 class MainActivity : ComponentActivity() {
 

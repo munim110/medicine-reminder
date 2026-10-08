@@ -19,6 +19,8 @@ local.properties
 keystore.properties
 signing.properties
 secrets.properties
+.env
+.env.*
 google-services.json
 /app/google-services.json
 

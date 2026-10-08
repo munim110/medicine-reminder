@@ -1,10 +1,10 @@
-package com.aigeolab.medremind.alarm
+package com.medremind.app.alarm
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.aigeolab.medremind.data.DoseStatus
-import com.aigeolab.medremind.data.ScheduleRepository
+import com.medremind.app.data.DoseStatus
+import com.medremind.app.data.ScheduleRepository
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -73,8 +73,8 @@ class DoseActionReceiver : BroadcastReceiver() {
     }
 
     companion object {
-        const val ACTION_TAKEN = "com.aigeolab.medremind.TAKEN"
-        const val ACTION_SKIPPED = "com.aigeolab.medremind.SKIPPED"
-        const val ACTION_SNOOZE = "com.aigeolab.medremind.SNOOZE"
+        const val ACTION_TAKEN = "com.medremind.app.TAKEN"
+        const val ACTION_SKIPPED = "com.medremind.app.SKIPPED"
+        const val ACTION_SNOOZE = "com.medremind.app.SNOOZE"
     }
 }

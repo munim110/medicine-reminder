@@ -1,4 +1,4 @@
-package com.aigeolab.medremind.ui
+package com.medremind.app.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,8 +25,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.aigeolab.medremind.R
-import com.aigeolab.medremind.data.FoodRule
+import com.medremind.app.R
+import com.medremind.app.data.FoodRule
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

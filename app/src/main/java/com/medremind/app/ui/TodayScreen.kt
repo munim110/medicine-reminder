@@ -1,4 +1,4 @@
-package com.aigeolab.medremind.ui
+package com.medremind.app.ui
 
 import android.Manifest
 import android.content.Intent
@@ -43,10 +43,10 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.aigeolab.medremind.R
-import com.aigeolab.medremind.alarm.AlarmScheduler
-import com.aigeolab.medremind.alarm.Notifications
-import com.aigeolab.medremind.data.DoseStatus
+import com.medremind.app.R
+import com.medremind.app.alarm.AlarmScheduler
+import com.medremind.app.alarm.Notifications
+import com.medremind.app.data.DoseStatus
 
 @Composable
 fun TodayScreen(vm: MedViewModel, modifier: Modifier = Modifier) {

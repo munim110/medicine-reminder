@@ -1,10 +1,10 @@
-package com.aigeolab.medremind
+package com.medremind.app
 
 import android.app.Application
 import android.util.Log
-import com.aigeolab.medremind.alarm.AlarmScheduler
-import com.aigeolab.medremind.alarm.Notifications
-import com.aigeolab.medremind.data.ScheduleRepository
+import com.medremind.app.alarm.AlarmScheduler
+import com.medremind.app.alarm.Notifications
+import com.medremind.app.data.ScheduleRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

@@ -1,4 +1,4 @@
-package com.aigeolab.medremind.data
+package com.medremind.app.data
 
 import androidx.room.Dao
 import androidx.room.Delete

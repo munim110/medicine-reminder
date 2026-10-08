@@ -1,4 +1,4 @@
-package com.aigeolab.medremind.ui
+package com.medremind.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,8 +19,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.aigeolab.medremind.R
-import com.aigeolab.medremind.data.DoseStatus
+import com.medremind.app.R
+import com.medremind.app.data.DoseStatus
 import java.time.LocalDate
 
 @Composable

@@ -1,9 +1,9 @@
-package com.aigeolab.medremind.ui
+package com.medremind.app.ui
 
 import androidx.annotation.StringRes
-import com.aigeolab.medremind.R
-import com.aigeolab.medremind.data.DoseStatus
-import com.aigeolab.medremind.data.FoodRule
+import com.medremind.app.R
+import com.medremind.app.data.DoseStatus
+import com.medremind.app.data.FoodRule
 import java.time.LocalDate
 
 @StringRes

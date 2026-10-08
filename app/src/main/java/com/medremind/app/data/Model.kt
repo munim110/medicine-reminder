@@ -1,4 +1,4 @@
-package com.aigeolab.medremind.data
+package com.medremind.app.data
 
 import androidx.room.ColumnInfo
 import androidx.room.Embedded

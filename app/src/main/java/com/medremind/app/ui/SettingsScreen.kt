@@ -1,4 +1,4 @@
-package com.aigeolab.medremind.ui
+package com.medremind.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,8 +25,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.aigeolab.medremind.R
-import com.aigeolab.medremind.data.AlarmSettings
+import com.medremind.app.R
+import com.medremind.app.data.AlarmSettings
 
 @Composable
 fun SettingsScreen(vm: MedViewModel, modifier: Modifier = Modifier) {
