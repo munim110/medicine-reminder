@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -31,6 +32,7 @@ import com.medremind.app.data.AlarmSettings
 @Composable
 fun SettingsScreen(vm: MedViewModel, modifier: Modifier = Modifier) {
     val settings by vm.settings.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     LazyColumn(
         modifier = modifier,
@@ -72,6 +74,7 @@ fun SettingsScreen(vm: MedViewModel, modifier: Modifier = Modifier) {
             )
         }
         item { CyclePreview(settings) }
+        if (isDebugBuild(context)) item { ScanTestCard() }
     }
 }
 

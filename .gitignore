@@ -64,6 +64,12 @@ lint-results*.sarif
 *.tmp
 *~
 
+# Test data
+test/data/
+
+# Credentials
+credentials/
+
 # ---- OS ----
 .DS_Store
 Thumbs.db

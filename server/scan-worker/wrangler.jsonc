@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "medremind-scan",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  // Buffer gives a native base64 encoder, which keeps image handling inside the free-plan CPU limit.
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "vars": {
+    // Only ID tokens issued by this Firebase project are accepted. Not a secret.
+    "FIREBASE_PROJECT_ID": "medremind-7e401",
+    "DEEPSEEK_MODEL": "deepseek-flash",
+    "DAILY_SCANS_PER_USER": "5",
+    // Spending circuit breaker across all users: at roughly $0.001 a scan this caps cost near $0.30/day.
+    "DAILY_SCANS_TOTAL": "300"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "medremind-scan",
+      "database_id": "34f96657-f26c-4732-9361-290d5a333d09"
+    }
+  ]
+  // DEEPSEEK_API_KEY is a secret: `npx wrangler secret put DEEPSEEK_API_KEY`. Never put it here.
+}

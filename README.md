@@ -72,7 +72,7 @@ Medicine alarms fail when the OS defers them. Specific measures:
 
 ## Data
 
-Room/SQLite, entirely offline.
+Room/SQLite on the device; the schedule and history live here.
 
 | Table | Purpose |
 |---|---|
@@ -120,6 +120,40 @@ Compress the timeline instead of waiting 30 minutes:
 adb shell "run-as com.medremind.app sqlite3 databases/medremind.db 'UPDATE settings SET ringSeconds=60, retryIntervalSeconds=120, giveUpSeconds=300;'"
 ```
 
+## Cloud
+
+Alarms never touch the network. Cloud features are additive and fail quietly when offline.
+
+```
+app ── anonymous sign-in ──▶ Firebase Auth (project medremind-7e401) ──▶ ID token
+ │
+ └── POST /scan  photo + ID token ──▶ Cloudflare Worker (server/scan-worker)
+                                        ├─ verifies the token against Google's public keys
+                                        ├─ daily limits in D1: 5 per user, 300 for everyone
+                                        └─ calls DeepSeek (deepseek-flash); key is a Worker secret
+```
+
+| Piece | Where | Notes |
+|---|---|---|
+| Firebase Auth | Anonymous (patient) + Google (guardians) | Enabled via `firebase.json`, `npx -y firebase-tools@latest deploy --only auth` |
+| Firestore | `asia-south1`, delete protection on | [firestore.rules](firestore.rules) denies everything until sync is built |
+| Scan Worker | `https://medremind-scan.munim987654321.workers.dev/scan` | Never logs or stores images or results |
+| `app/google-services.json` | not committed | `npx -y firebase-tools@latest apps:sdkconfig ANDROID 1:288323619548:android:d194f6579c680d120fc219` |
+
+Worker:
+
+```powershell
+cd server\scan-worker
+npm install
+npx tsc --noEmit                                  # type-check
+npx wrangler deploy
+npx wrangler secret put DEEPSEEK_API_KEY          # paste the key; never commit it
+npx wrangler d1 execute medremind-scan --remote --file schema.sql   # first time only
+```
+
+Debug builds show a **প্রেসক্রিপশন স্ক্যান (পরীক্ষা)** card at the bottom of সেটিংস that sends a
+gallery photo through the whole chain and displays the result. It writes nothing to the schedule.
+
 ## Toolchain
 
 AGP 9.3.1 · Kotlin 2.4.10 (built into AGP) · Gradle 9.7.0 · Compose BOM 2026.06.01 ·
@@ -140,12 +174,21 @@ app/src/main/java/com/medremind/app/
     AlarmReceiver.kt       dose due / retry / boot receivers
     AlarmService.kt        foreground service: sound, vibration, wake lock
     DoseActions.kt         single path for TAKEN / SKIPPED / snooze
+  cloud/
+    CloudSession.kt        silent anonymous sign-in, ID tokens
+    ScanClient.kt          photo → scan Worker → parsed medicines
   ui/                      Compose screens, view model, Bengali formatting
+
+server/scan-worker/        Cloudflare Worker: auth check, quotas, DeepSeek call
 ```
 
 ## Not done yet
 
-- **Server sync** — deferred by request. Schema is ready (`uuid`, `synced`); no networking code.
+- **Server sync / guardian** — Firebase is set up and the app signs in, but dose logs are not synced
+  yet. Schema is ready (`uuid`, `synced`).
+- **Prescription review screen** — scanning works end to end; importing the result into the schedule
+  does not exist yet.
+- **App Check** — before release, so only the genuine app can call the Worker.
 - **Instrumented UI tests** — logic is unit-tested; UI was verified manually on an API 37 emulator.
 - Renaming a medicine that appears in two slots must be done in both.
 

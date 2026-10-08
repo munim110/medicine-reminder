@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import com.medremind.app.alarm.AlarmScheduler
 import com.medremind.app.alarm.Notifications
+import com.medremind.app.cloud.CloudSession
 import com.medremind.app.data.ScheduleRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +24,12 @@ class MedRemindApp : Application() {
                 ScheduleRepository.get(this@MedRemindApp).reconcileMissed()
                 AlarmScheduler.rescheduleAll(this@MedRemindApp)
             }.onFailure { Log.e("MedRemindApp", "Startup scheduling failed", it) }
+        }
+
+        // Separate from the alarm work above, so a slow or failed sign-in can never delay arming.
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            runCatching { CloudSession.ensureSignedIn() }
+                .onFailure { Log.w("MedRemindApp", "Anonymous sign-in failed; will retry on next use", it) }
         }
     }
 }

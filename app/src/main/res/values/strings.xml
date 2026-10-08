@@ -89,4 +89,20 @@
     <string name="history_title">ইতিহাস</string>
     <string name="history_empty">এখনো কোনো তথ্য নেই</string>
     <string name="history_summary">%1$s দিনে %2$s বার খাওয়া হয়েছে</string>
+
+    <!-- prescription scan (debug test card for now) -->
+    <string name="scan_test_title">প্রেসক্রিপশন স্ক্যান (পরীক্ষা)</string>
+    <string name="scan_test_desc">প্রেসক্রিপশনের ছবি বেছে নিন। ফলাফল শুধু দেখানো হবে, সময়সূচিতে কিছু যোগ হবে না।</string>
+    <string name="scan_test_pick">ছবি বেছে নিন</string>
+    <string name="scan_not_prescription">এটি প্রেসক্রিপশন বলে মনে হচ্ছে না</string>
+    <string name="scan_weekly">সপ্তাহে একবার</string>
+    <string name="scan_monthly">মাসে একবার</string>
+    <string name="scan_as_needed">প্রয়োজনে</string>
+    <string name="scan_check_this">⚠ কাগজের সাথে মিলিয়ে দেখুন</string>
+    <string name="scan_left_today">আজ আর %1$s বার স্ক্যান করা যাবে</string>
+    <string name="scan_error_offline">ইন্টারনেট সংযোগ নেই</string>
+    <string name="scan_error_limit">আজকের স্ক্যানের সীমা শেষ, কাল আবার চেষ্টা করুন</string>
+    <string name="scan_error_busy">এখন স্ক্যান করা যাচ্ছে না, পরে চেষ্টা করুন</string>
+    <string name="scan_error_image">ছবিটি খোলা যায়নি</string>
+    <string name="scan_error_failed">স্ক্যান ব্যর্থ হয়েছে, আবার চেষ্টা করুন</string>
 </resources>
