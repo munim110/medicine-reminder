@@ -1,10 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    An alarm clock with a capsule leaning on it. Every part is a real cut-out (no shapes painted in
+    the background colour), so the same drawable doubles as the monochrome themed icon. The artwork
+    sits inside the 66dp safe zone so no launcher mask clips it. store/play-icon-512.png is this
+    icon rendered full-bleed for the Play listing; keep the two in step.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,32 L72,72 L64,72 L54,50 L44,72 L36,72 Z" />
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.9"
+        android:scaleY="0.9"
+        android:translateX="-0.8"
+        android:translateY="-2.6">
+        <!-- Clock ring, cut flat where the capsule sits. -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M67.41,56.57 A18,18 0 1,0 54.57,69.41 Z M36,52 A14,14 0 1,1 64,52 A14,14 0 1,1 36,52 Z" />
+        <!-- Bells. -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M40.32,33.36 A7,7 0 1,0 31.36,42.32 A21,21 0 0,1 40.32,33.36 Z M68.64,42.32 A7,7 0 1,0 59.68,33.36 A21,21 0 0,1 68.64,42.32 Z" />
+        <!-- Hands. -->
+        <path
+            android:pathData="M50,52 L50,43.5 M50,52 L56,52"
+            android:strokeWidth="3.2"
+            android:strokeColor="#FFFFFF"
+            android:strokeLineCap="round" />
+        <group
+            android:pivotX="67"
+            android:pivotY="69"
+            android:rotation="-45">
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M66.4,63 L53,63 A6,6 0 0,0 53,75 L66.4,75 Z" />
+            <path
+                android:fillColor="#F6BF3E"
+                android:pathData="M67.6,63 L81,63 A6,6 0 0,1 81,75 L67.6,75 Z" />
+        </group>
+    </group>
 </vector>
