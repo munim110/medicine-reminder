@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /** Fires when a dose slot first comes due. */
 class AlarmReceiver : BroadcastReceiver() {
@@ -23,17 +24,24 @@ class AlarmReceiver : BroadcastReceiver() {
 
         val appContext = context.applicationContext
 
-        // Start ringing first: the exact-alarm broadcast grants a short window in which a
-        // foreground service may be started from the background. Do not spend it on I/O.
-        AlarmService.start(appContext, groupId, scheduledAt)
-
         val pending = goAsync()
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {
                 val repo = ScheduleRepository.get(appContext)
 
+                // Don't ring for a dose already taken early, or a slot since emptied or switched
+                // off. Bounded: the exact-alarm broadcast allows starting a foreground service only
+                // briefly, so if the database is slow, ring anyway.
+                val stale = withTimeoutOrNull(STALE_CHECK_MILLIS) { isStale(repo, groupId, scheduledAt) } ?: false
+                if (stale) {
+                    Log.i(TAG, "Slot $groupId needs nothing now; not ringing")
+                    repo.group(groupId)?.let { AlarmScheduler.scheduleNext(appContext, it) }
+                    return@launch
+                }
+                AlarmService.start(appContext, groupId, scheduledAt)
+
                 // Re-arm immediately so tomorrow's dose is set even if this one is ignored.
-                repo.group(groupId)?.let { AlarmScheduler.scheduleNext(appContext, it.group) }
+                repo.group(groupId)?.let { AlarmScheduler.scheduleNext(appContext, it) }
 
                 // Arm the next escalation attempt now rather than when the ring ends, so the
                 // cycle survives the process being killed mid-alarm.
@@ -51,7 +59,16 @@ class AlarmReceiver : BroadcastReceiver() {
 
     private companion object {
         const val TAG = "AlarmReceiver"
+        const val STALE_CHECK_MILLIS = 2_000L
     }
+}
+
+/** True when nothing should ring for this dose: answered, or its slot gone, off, or empty that day. */
+private suspend fun isStale(repo: ScheduleRepository, groupId: Long, scheduledAt: Long): Boolean {
+    val group = repo.group(groupId) ?: return true
+    return !group.group.enabled ||
+        !group.isDueOn(ScheduleRepository.localDate(scheduledAt)) ||
+        repo.hasOutcome(groupId, scheduledAt)
 }
 
 /**
@@ -66,6 +83,7 @@ class RetryReceiver : BroadcastReceiver() {
         val groupId = intent.getLongExtra(AlarmScheduler.EXTRA_GROUP_ID, -1L)
         if (groupId < 0) return
         val scheduledAt = intent.getLongExtra(AlarmScheduler.EXTRA_SCHEDULED_AT, 0L)
+        val snoozed = intent.getBooleanExtra(AlarmScheduler.EXTRA_SNOOZED, false)
         val appContext = context.applicationContext
 
         val pending = goAsync()
@@ -73,14 +91,25 @@ class RetryReceiver : BroadcastReceiver() {
             try {
                 val repo = ScheduleRepository.get(appContext)
 
-                // Already answered (from the app, or a notification button)? Stand down.
-                if (scheduledAt > 0 && repo.hasOutcome(groupId, scheduledAt)) {
+                // Already answered (from the app, or a notification button), or the slot was
+                // deleted or switched off since? Stand down.
+                val stale = scheduledAt <= 0 ||
+                    (withTimeoutOrNull(STALE_CHECK_MILLIS) { isStale(repo, groupId, scheduledAt) } ?: false)
+                if (stale) {
                     AlarmScheduler.cancelRetry(appContext, groupId)
                     return@launch
                 }
 
                 val settings = repo.settings()
                 val now = System.currentTimeMillis()
+
+                if (snoozed && settings.isPastGiveUp(scheduledAt, now)) {
+                    // The user asked to be reminded later: ring once more, and only then give up.
+                    AlarmService.start(appContext, groupId, scheduledAt)
+                    val interval = settings.retryIntervalSeconds.coerceAtLeast(60) * 1000L
+                    AlarmScheduler.scheduleRetry(appContext, groupId, scheduledAt, now + interval)
+                    return@launch
+                }
 
                 if (settings.isPastGiveUp(scheduledAt, now)) {
                     Log.i(TAG, "Slot $groupId unanswered past give-up window; marking missed")
@@ -90,9 +119,7 @@ class RetryReceiver : BroadcastReceiver() {
                     repo.record(
                         group = group,
                         status = DoseStatus.MISSED,
-                        date = java.time.Instant.ofEpochMilli(scheduledAt)
-                            .atZone(java.time.ZoneId.systemDefault())
-                            .toLocalDate(),
+                        date = ScheduleRepository.localDate(scheduledAt),
                         scheduledAt = scheduledAt,
                     )
                     return@launch
@@ -112,6 +139,7 @@ class RetryReceiver : BroadcastReceiver() {
 
     private companion object {
         const val TAG = "RetryReceiver"
+        const val STALE_CHECK_MILLIS = 2_000L
     }
 }
 

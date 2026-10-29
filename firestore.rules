@@ -1,10 +1,91 @@
 rules_version = '2';
 
-// Locked until the sync and guardian rules are written: no client can read or write anything.
+// Family sharing. Layout and flows: app/src/main/java/com/medremind/app/cloud/FamilyModel.kt
+//
+// - Only the patient's own phone writes patient data (schedule snapshot, dose history).
+// - A guardian can read a patient only while patients/{p}/guardians/{guardianUid} exists, and can
+//   create that document only by presenting an unexpired pairing code issued by that patient.
+// - Guardians change the schedule by leaving requests in edits/, which the patient's phone checks,
+//   applies and deletes. They never write patient data directly.
+// - Everything not matched below is denied.
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if false;
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isGoogle() {
+      return signedIn() && request.auth.token.firebase.sign_in_provider == 'google.com';
+    }
+
+    function isPatient(p) {
+      return signedIn() && request.auth.uid == p;
+    }
+
+    function isGuardianOf(p) {
+      return signedIn() && exists(/databases/$(database)/documents/patients/$(p)/guardians/$(request.auth.uid));
+    }
+
+    // 15-minute pairing codes. Readable by exact id only (no listing), so a code must be known to
+    // be found; 31^8 possible codes make guessing one within its lifetime impractical.
+    match /pairCodes/{code} {
+      allow get: if isGoogle() || (signedIn() && resource.data.patient == request.auth.uid);
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['patient', 'name', 'expiresAt'])
+        && request.resource.data.patient == request.auth.uid
+        && request.resource.data.name is string && request.resource.data.name.size() <= 60
+        && request.resource.data.expiresAt is timestamp
+        // Allows for a patient phone whose clock runs somewhat fast.
+        && request.resource.data.expiresAt < request.time + duration.value(1, 'h');
+      allow delete: if signedIn() && resource.data.patient == request.auth.uid;
+    }
+
+    match /patients/{p} {
+      allow read: if isPatient(p) || isGuardianOf(p);
+      allow write: if isPatient(p);
+
+      match /logs/{logId} {
+        allow read: if isPatient(p) || isGuardianOf(p);
+        allow create, update: if isPatient(p)
+          && request.resource.data.keys().hasOnly(
+            ['groupId', 'date', 'label', 'medicines', 'status', 'scheduledAt', 'actionedAt', 'updatedAt'])
+          && request.resource.data.status in ['TAKEN', 'SKIPPED', 'MISSED'];
+        allow delete: if isPatient(p);
+      }
+
+      match /guardians/{g} {
+        allow read: if isPatient(p) || (signedIn() && request.auth.uid == g);
+        // Joining (or re-joining): a Google-signed-in user adds themselves with the patient's live code.
+        allow create, update: if isGoogle()
+          && request.auth.uid == g
+          && g != p
+          && request.resource.data.keys().hasOnly(['code', 'name', 'email', 'addedAt'])
+          && request.resource.data.code is string
+          && get(/databases/$(database)/documents/pairCodes/$(request.resource.data.code)).data.patient == p
+          && get(/databases/$(database)/documents/pairCodes/$(request.resource.data.code)).data.expiresAt > request.time;
+        // Either side can end it.
+        allow delete: if isPatient(p) || (signedIn() && request.auth.uid == g);
+      }
+
+      match /edits/{e} {
+        allow read: if isPatient(p) || isGuardianOf(p);
+        allow create: if isGuardianOf(p)
+          && request.resource.data.by == request.auth.uid
+          && request.resource.data.type in ['set_time', 'add_stock', 'delete_medicine', 'add_medicine']
+          && request.resource.data.keys().hasOnly([
+            'type', 'by', 'byName', 'createdAt', 'slotId', 'hour', 'minute', 'medicineId', 'amount',
+            'name', 'genericName', 'quantity', 'foodRule', 'frequency', 'dayOfWeek', 'dayOfMonth'])
+          && request.resource.data.createdAt == request.time;
+        allow delete: if isPatient(p);
+      }
+    }
+
+    // A guardian's own list of the patients they follow. Holds no patient data beyond a name.
+    match /users/{u}/linked/{p} {
+      allow read, delete: if signedIn() && request.auth.uid == u;
+      allow create, update: if signedIn() && request.auth.uid == u
+        && request.resource.data.keys().hasOnly(['name', 'addedAt']);
     }
   }
 }

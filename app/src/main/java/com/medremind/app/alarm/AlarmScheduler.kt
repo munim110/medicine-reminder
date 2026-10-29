@@ -8,13 +8,12 @@ import android.net.Uri
 import android.os.Build
 import android.util.Log
 import com.medremind.app.MainActivity
-import com.medremind.app.data.DoseGroup
+import com.medremind.app.data.GroupWithItems
 import com.medremind.app.data.ScheduleRepository
-import java.time.LocalDate
 import java.time.ZoneId
 
 /**
- * Schedules one repeating daily alarm per dose slot.
+ * Schedules one alarm per dose slot, for the next day the slot has something due.
  *
  * Uses [AlarmManager.setAlarmClock] rather than setExact/setRepeating: it is the only API that
  * Doze and battery optimisation will not defer, and it surfaces the pending alarm in the system
@@ -24,6 +23,9 @@ object AlarmScheduler {
 
     const val EXTRA_GROUP_ID = "com.medremind.app.GROUP_ID"
     const val EXTRA_SCHEDULED_AT = "com.medremind.app.SCHEDULED_AT"
+
+    /** On a retry the user asked for: it rings even past the give-up time, once. */
+    const val EXTRA_SNOOZED = "com.medremind.app.SNOOZED"
 
     private const val TAG = "AlarmScheduler"
     private const val SHOW_INTENT_OFFSET = 100_000
@@ -38,18 +40,33 @@ object AlarmScheduler {
     suspend fun rescheduleAll(context: Context) {
         val repo = ScheduleRepository.get(context)
         for (group in repo.groups()) {
-            if (group.group.enabled && group.group.isTimeSet) {
-                scheduleNext(context, group.group)
-            } else {
+            val armed = group.group.enabled && scheduleNext(context, group)
+            if (!armed) {
                 cancel(context, group.group.id)
+                // Switched off or emptied mid-cycle: the dose being chased no longer exists.
+                cancelRetry(context, group.group.id)
             }
         }
     }
 
-    /** Arms [group] for its next occurrence strictly after [from]. */
-    fun scheduleNext(context: Context, group: DoseGroup, from: Long = System.currentTimeMillis()) {
-        val trigger = nextTrigger(group, from) ?: return
-        scheduleAt(context, group.id, trigger)
+    /**
+     * Arms [group] for its next due occurrence strictly after [from], skipping any day whose dose
+     * already has an outcome — taken early from the আজ tab, say. Returns false, arming nothing,
+     * when the slot has no time or nothing is due in the coming months.
+     */
+    suspend fun scheduleNext(context: Context, group: GroupWithItems, from: Long = System.currentTimeMillis()): Boolean {
+        val repo = ScheduleRepository.get(context)
+        var after = from
+        // At most today can already be answered, but allow for a backdated record or two.
+        repeat(3) {
+            val trigger = nextTrigger(group, after) ?: return false
+            if (!repo.hasOutcome(group.group.id, trigger)) {
+                scheduleAt(context, group.group.id, trigger)
+                return true
+            }
+            after = trigger
+        }
+        return false
     }
 
     fun scheduleAt(context: Context, groupId: Long, triggerAtMillis: Long) {
@@ -90,9 +107,15 @@ object AlarmScheduler {
      * Deliberately a separate PendingIntent from the daily alarm: re-ringing today's dose must
      * never overwrite tomorrow's scheduled alarm.
      */
-    fun scheduleRetry(context: Context, groupId: Long, scheduledAt: Long, triggerAtMillis: Long) {
+    fun scheduleRetry(
+        context: Context,
+        groupId: Long,
+        scheduledAt: Long,
+        triggerAtMillis: Long,
+        snoozed: Boolean = false,
+    ) {
         val am = context.getSystemService(AlarmManager::class.java) ?: return
-        val operation = retryIntent(context, groupId, scheduledAt)
+        val operation = retryIntent(context, groupId, scheduledAt, snoozed)
         try {
             if (canScheduleExact(context)) {
                 am.setAlarmClock(AlarmManager.AlarmClockInfo(triggerAtMillis, null), operation)
@@ -116,15 +139,17 @@ object AlarmScheduler {
             groupId = groupId,
             scheduledAt = scheduledAt,
             triggerAtMillis = System.currentTimeMillis() + minutes * 60_000L,
+            snoozed = true,
         )
     }
 
-    private fun retryIntent(context: Context, groupId: Long, scheduledAt: Long): PendingIntent {
+    private fun retryIntent(context: Context, groupId: Long, scheduledAt: Long, snoozed: Boolean = false): PendingIntent {
         val intent = Intent(context, RetryReceiver::class.java).apply {
             action = "com.medremind.app.DOSE_RETRY"
             data = Uri.parse("medremind://retry/$groupId")
             putExtra(EXTRA_GROUP_ID, groupId)
             putExtra(EXTRA_SCHEDULED_AT, scheduledAt)
+            putExtra(EXTRA_SNOOZED, snoozed)
         }
         return PendingIntent.getBroadcast(
             context,
@@ -134,15 +159,19 @@ object AlarmScheduler {
         )
     }
 
-    private fun nextTrigger(group: DoseGroup, from: Long): Long? {
-        val hour = group.hour ?: return null
-        val minute = group.minute ?: return null
-        val zone = ZoneId.systemDefault()
-        var candidate = LocalDate.now(zone).atTime(hour, minute).atZone(zone)
-        if (candidate.toInstant().toEpochMilli() <= from) {
-            candidate = candidate.plusDays(1)
+    /** The first time on or after [from]'s day when [group] has something due, or null. */
+    internal fun nextTrigger(group: GroupWithItems, from: Long, zone: ZoneId = ZoneId.systemDefault()): Long? {
+        val hour = group.group.hour ?: return null
+        val minute = group.group.minute ?: return null
+        val start = java.time.Instant.ofEpochMilli(from).atZone(zone).toLocalDate()
+        // Two months covers every monthly day, including the 31st after a short month.
+        for (offset in 0L..62L) {
+            val date = start.plusDays(offset)
+            if (!group.isDueOn(date)) continue
+            val at = date.atTime(hour, minute).atZone(zone).toInstant().toEpochMilli()
+            if (at > from) return at
         }
-        return candidate.toInstant().toEpochMilli()
+        return null
     }
 
     /**

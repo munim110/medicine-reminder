@@ -5,9 +5,7 @@ import android.content.Context
 import android.content.Intent
 import com.medremind.app.data.DoseStatus
 import com.medremind.app.data.ScheduleRepository
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,17 +20,13 @@ object DoseActions {
     suspend fun record(context: Context, groupId: Long, scheduledAt: Long, status: DoseStatus) {
         val repo = ScheduleRepository.get(context)
         val group = repo.group(groupId) ?: return
-        val date = if (scheduledAt > 0) {
-            Instant.ofEpochMilli(scheduledAt).atZone(ZoneId.systemDefault()).toLocalDate()
-        } else {
-            LocalDate.now()
-        }
+        val date = if (scheduledAt > 0) ScheduleRepository.localDate(scheduledAt) else LocalDate.now()
         repo.record(group, status, date, scheduledAt)
 
         // The dose is settled: stop ringing and stand down the escalation cycle.
         AlarmService.stop(context)
         AlarmScheduler.cancelRetry(context, groupId)
-        AlarmScheduler.scheduleNext(context, group.group)
+        AlarmScheduler.scheduleNext(context, group)
     }
 
     suspend fun snooze(context: Context, groupId: Long, scheduledAt: Long) {

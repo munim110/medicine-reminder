@@ -96,7 +96,8 @@ object ScanClient {
         try {
             conn.requestMethod = "POST"
             conn.connectTimeout = 15_000
-            conn.readTimeout = 60_000
+            // The Worker may try two AI providers, 50 s each, before answering.
+            conn.readTimeout = 120_000
             conn.doOutput = true
             conn.setFixedLengthStreamingMode(jpeg.size)
             conn.setRequestProperty("Authorization", "Bearer $token")

@@ -85,7 +85,11 @@ export const USER_PROMPT = "Transcribe the medicines on this prescription as JSO
 
 /** Parses the model's reply and coerces it into [ScanResult], dropping anything malformed. */
 export function parseScanResult(content: string): ScanResult {
-  const raw = JSON.parse(content.replace(/^\s*```(?:json)?\s*|\s*```\s*$/g, "")) as Record<string, unknown>;
+  // The object itself, without code fences or any "Here is the JSON:" a model wraps it in.
+  const start = content.indexOf("{");
+  const end = content.lastIndexOf("}");
+  if (start < 0 || end < start) throw new SyntaxError("no JSON object in reply");
+  const raw = JSON.parse(content.slice(start, end + 1)) as Record<string, unknown>;
   const medicines = Array.isArray(raw.medicines) ? raw.medicines : [];
   return {
     isPrescription: raw.isPrescription === true,

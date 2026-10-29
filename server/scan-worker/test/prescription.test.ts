@@ -41,3 +41,11 @@ test("model output is coerced and never trusted", () => {
   assert.equal(r.medicines[1].confidence, "medium");
   assert.equal(r.notes, null);
 });
+
+test("a reply wrapped in prose or fences still parses; one with no object is rejected", () => {
+  const json = JSON.stringify({ isPrescription: true, medicines: [{ name: "Napa", doseText: "1+0+1", confidence: "high" }] });
+  for (const wrapped of [json, "```json\n" + json + "\n```", "Here is the JSON:\n" + json + "\nLet me know if you need more."]) {
+    assert.equal(parseScanResult(wrapped).medicines[0].name, "Napa");
+  }
+  assert.throws(() => parseScanResult("I cannot read this image."));
+});

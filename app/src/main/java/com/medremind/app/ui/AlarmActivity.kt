@@ -42,6 +42,7 @@ import com.medremind.app.alarm.AlarmState
 import com.medremind.app.alarm.DoseActions
 import com.medremind.app.data.DoseStatus
 import com.medremind.app.data.GroupWithItems
+import com.medremind.app.data.Quantities
 import com.medremind.app.data.ScheduleRepository
 import com.medremind.app.ui.theme.MedRemindTheme
 import kotlinx.coroutines.flow.dropWhile
@@ -88,6 +89,7 @@ class AlarmActivity : ComponentActivity() {
 
                 AlarmScreen(
                     group = group,
+                    date = if (scheduledAt > 0) ScheduleRepository.localDate(scheduledAt) else java.time.LocalDate.now(),
                     snoozeMinutes = snoozeMinutes,
                     onTaken = { complete(groupId, scheduledAt, DoseStatus.TAKEN) },
                     onSkip = { complete(groupId, scheduledAt, DoseStatus.SKIPPED) },
@@ -139,6 +141,7 @@ class AlarmActivity : ComponentActivity() {
 @Composable
 private fun AlarmScreen(
     group: GroupWithItems?,
+    date: java.time.LocalDate,
     snoozeMinutes: Int,
     onTaken: () -> Unit,
     onSkip: () -> Unit,
@@ -175,7 +178,7 @@ private fun AlarmScreen(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             ) {
                 Column(Modifier.padding(20.dp)) {
-                    val items = group?.sortedItems.orEmpty()
+                    val items = group?.itemsDueOn(date).orEmpty()
                     if (items.isEmpty()) {
                         Text(
                             text = stringResource(R.string.alarm_body_empty),
@@ -185,12 +188,12 @@ private fun AlarmScreen(
                         items.forEachIndexed { index, item ->
                             if (index > 0) Spacer(Modifier.height(16.dp))
                             Text(
-                                text = "${Bn.num(index + 1)}. ${item.medicineName}",
+                                text = "${Bn.num(index + 1)}. ${Quantities.describe(item.name, item.item.quantity)}",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                             )
                             Text(
-                                text = stringResource(foodRuleLabel(item.foodRule)),
+                                text = stringResource(foodRuleLabel(item.item.foodRule)),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.primary,
                             )
@@ -227,7 +230,7 @@ private fun AlarmScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 TextButton(onClick = onSnooze) {
-                    Text("${Bn.num(snoozeMinutes)} মিনিট পরে")
+                    Text(stringResource(R.string.action_snooze, Bn.num(snoozeMinutes)))
                 }
                 TextButton(onClick = onSkip) {
                     Text(stringResource(R.string.action_skip))

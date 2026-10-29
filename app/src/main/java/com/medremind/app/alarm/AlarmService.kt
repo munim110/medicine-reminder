@@ -20,6 +20,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import com.medremind.app.R
+import com.medremind.app.data.Quantities
 import com.medremind.app.data.ScheduleRepository
 import com.medremind.app.ui.foodRuleLabel
 import kotlinx.coroutines.CoroutineScope
@@ -111,9 +112,12 @@ class AlarmService : Service() {
     }
 
     private suspend fun updateNotificationDetails(groupId: Long, scheduledAt: Long) {
-        val group = runCatching { ScheduleRepository.get(this).group(groupId) }.getOrNull() ?: return
-        val body = group.sortedItems.joinToString("\n") { item ->
-            "• ${item.medicineName} — ${getString(foodRuleLabel(item.foodRule))}"
+        val repo = ScheduleRepository.get(this)
+        val group = runCatching { repo.group(groupId) }.getOrNull() ?: return
+        val snoozeMinutes = runCatching { repo.settings().snoozeMinutes }.getOrNull()
+        val date = if (scheduledAt > 0) ScheduleRepository.localDate(scheduledAt) else java.time.LocalDate.now()
+        val body = group.itemsDueOn(date).joinToString("\n") { entry ->
+            "• ${Quantities.describe(entry.name, entry.item.quantity)} — ${getString(foodRuleLabel(entry.item.foodRule))}"
         }.ifBlank { getString(R.string.alarm_body_empty) }
 
         val updated = Notifications.buildAlarmNotification(
@@ -122,6 +126,7 @@ class AlarmService : Service() {
             scheduledAt = scheduledAt,
             title = getString(R.string.alarm_title_at, group.group.label),
             body = body,
+            snoozeMinutes = snoozeMinutes,
         )
         postNotification(updated)
     }

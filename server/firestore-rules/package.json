@@ -1,0 +1,13 @@
+{
+  "name": "medremind-firestore-rules",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "cd ../.. && firebase emulators:exec --only firestore --project demo-medremind \"node --test server/firestore-rules/test/*.test.js\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "firebase": "13.0.0",
+    "firebase-tools": "15.33.0"
+  }
+}

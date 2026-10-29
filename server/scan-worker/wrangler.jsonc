@@ -9,10 +9,20 @@
   "vars": {
     // Only ID tokens issued by this Firebase project are accepted. Not a secret.
     "FIREBASE_PROJECT_ID": "medremind-7e401",
+    // Which AI reads the photo: "deepseek" or "bedrock". AI_FALLBACK is tried if the first errors
+    // ("" for none). Switching needs only these two lines plus the provider's secrets.
+    "AI_PROVIDER": "bedrock",
+    "AI_FALLBACK": "deepseek",
     "DEEPSEEK_MODEL": "deepseek-flash",
+    // Any Bedrock vision model, by model or inference-profile ID. Kimi K2.5 read real handwriting
+    // best of the cheap models tested (2026-10-08). Claude would be "global.anthropic.claude-haiku-5-5".
+    "BEDROCK_REGION": "ap-south-1",
+    "BEDROCK_MODEL": "moonshotai.kimi-k2.5",
     "DAILY_SCANS_PER_USER": "5",
-    // Spending circuit breaker across all users: at roughly $0.001 a scan this caps cost near $0.30/day.
-    "DAILY_SCANS_TOTAL": "300"
+    // Spending circuit breaker across all users. Set it for the active provider's price per scan:
+    // DeepSeek ≈ $0.001 → 300/day ≈ $0.30. Kimi K2.5 on Bedrock ≈ $0.005 → 250/day ≈ $9/week.
+    // Claude Haiku on Bedrock ≈ $0.01 → 140/day keeps under $10/week.
+    "DAILY_SCANS_TOTAL": "250"
   },
   "d1_databases": [
     {
@@ -21,5 +31,7 @@
       "database_id": "34f96657-f26c-4732-9361-290d5a333d09"
     }
   ]
-  // DEEPSEEK_API_KEY is a secret: `npx wrangler secret put DEEPSEEK_API_KEY`. Never put it here.
+  // Secrets, never put here: `npx wrangler secret put <NAME>`
+  //   DEEPSEEK_API_KEY                          for "deepseek"
+  //   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY  for "bedrock" (IAM user with bedrock:InvokeModel)
 }

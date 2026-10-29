@@ -13,7 +13,8 @@
 
     <!-- actions -->
     <string name="action_taken">খাওয়া হয়েছে</string>
-    <string name="action_snooze">১০ মিনিট পরে</string>
+    <string name="action_snooze">%1$s মিনিট পরে</string>
+    <string name="action_snooze_later">পরে মনে করান</string>
     <string name="action_skip">বাদ দিন</string>
     <string name="save">সংরক্ষণ</string>
     <string name="cancel">বাতিল</string>
@@ -61,9 +62,15 @@
     <string name="slot_disabled">বন্ধ আছে</string>
     <string name="today_empty">কোনো সময়সূচি নেই</string>
 
-    <!-- morning prompt -->
-    <string name="morning_prompt_title">সকালের সময় ঠিক করুন</string>
-    <string name="morning_prompt_body">কাগজে সকালের নির্দিষ্ট সময় লেখা ছিল না। অ্যালার্ম চালু করতে সময়টি ঠিক করে দিন।</string>
+    <!-- a slot with medicines but no clock time -->
+    <string name="slot_time_prompt_title">%1$s এর সময় ঠিক করুন</string>
+    <string name="slot_time_prompt_body">এই বেলার ওষুধ আছে, কিন্তু ঘড়ির সময় ঠিক করা নেই। অ্যালার্ম চালু করতে সময়টি ঠিক করে দিন।</string>
+
+    <!-- a guardian's phone still carrying the medicines old versions came with -->
+    <string name="legacy_seed_title">এই ফোনে অ্যালার্ম দরকার?</string>
+    <string name="legacy_seed_body">অ্যাপের আগের সংস্করণ এই ফোনে একটি ওষুধের তালিকা দিয়ে দিয়েছিল, তাই এখানে অ্যালার্ম বাজছে। আপনি শুধু পরিবারের ওষুধ দেখতে চাইলে তালিকাটি মুছে দিন। পরিবারের সদস্যের ফোনে কিছুই বদলাবে না।</string>
+    <string name="legacy_seed_clear">তালিকা মুছে দিন</string>
+    <string name="legacy_seed_keep">এগুলো আমার ওষুধ</string>
 
     <!-- permissions -->
     <string name="perm_notification_title">নোটিফিকেশনের অনুমতি দরকার</string>
@@ -90,19 +97,152 @@
     <string name="history_empty">এখনো কোনো তথ্য নেই</string>
     <string name="history_summary">%1$s দিনে %2$s বার খাওয়া হয়েছে</string>
 
-    <!-- prescription scan (debug test card for now) -->
-    <string name="scan_test_title">প্রেসক্রিপশন স্ক্যান (পরীক্ষা)</string>
-    <string name="scan_test_desc">প্রেসক্রিপশনের ছবি বেছে নিন। ফলাফল শুধু দেখানো হবে, সময়সূচিতে কিছু যোগ হবে না।</string>
-    <string name="scan_test_pick">ছবি বেছে নিন</string>
+    <!-- common -->
+    <string name="ok">ঠিক আছে</string>
+    <string name="close">বন্ধ করুন</string>
+    <string name="back">পেছনে</string>
+    <string name="edit">বদলান</string>
+    <string name="remove">সরান</string>
+    <string name="none">নেই</string>
+    <string name="tab_family">পরিবার</string>
+
+    <!-- medicine editor -->
+    <string name="generic_name">উপাদান: %1$s</string>
+    <string name="rename_everywhere">নাম বদলালে সব সময়ের ঘরে বদলাবে</string>
+    <string name="quantity_per_dose">প্রতিবার কতটি</string>
+    <string name="food_rule">খাবারের সাথে</string>
+    <string name="how_often">কত দিন পরপর</string>
+    <string name="freq_daily">প্রতিদিন</string>
+    <string name="freq_weekly">সপ্তাহে একবার</string>
+    <string name="freq_monthly">মাসে একবার</string>
+    <string name="day_of_month">মাসের তারিখ:</string>
+
+    <!-- medicines and stock -->
+    <string name="medicines_title">ওষুধ ও মজুদ</string>
+    <string name="medicines_desc">কতটি আছে লিখে রাখলে শেষ হওয়ার আগে জানিয়ে দেবে</string>
+    <string name="as_needed_medicine">প্রয়োজনে খাওয়ার ওষুধ (অ্যালার্ম বাজবে না)</string>
+    <string name="stock_not_tracked">মজুদের হিসাব রাখা হচ্ছে না</string>
+    <string name="stock_units">মজুদ: %1$sটি</string>
+    <string name="stock_units_days">মজুদ: %1$sটি · আর প্রায় %2$s দিন চলবে</string>
+    <string name="bought">কিনেছি</string>
+    <string name="bought_title">%1$s কেনা হয়েছে</string>
+    <string name="bought_label">কতটি কিনেছেন</string>
+    <string name="set_stock">মজুদ ঠিক করুন</string>
+    <string name="stock_title">%1$s এখন কতটি আছে</string>
+    <string name="stock_label">এখন কতটি আছে</string>
+    <string name="stock_empty_hint">খালি রাখলে মজুদের হিসাব বন্ধ থাকবে</string>
+    <string name="course_over">কোর্স শেষ</string>
+    <string name="course_over_confirm">%1$s এর কোর্স শেষ? সব সময়ের ঘর থেকে মুছে যাবে।</string>
+    <string name="low_stock_title">%1$sটি ওষুধ শেষ হয়ে আসছে</string>
+    <string name="share_shopping_list">কেনার তালিকা পাঠান</string>
+    <string name="shopping_header">ওষুধ কিনতে হবে:</string>
+    <string name="shopping_line">• %1$s — আর %2$s দিনের আছে</string>
+
+    <!-- prescription scan -->
+    <string name="scan_title">প্রেসক্রিপশনের ছবি থেকে যোগ করুন</string>
+    <string name="scan_desc">ছবি তুললে ওষুধগুলো পড়ে দেওয়া হবে। যোগ করার আগে আপনি মিলিয়ে দেখবেন।</string>
+    <string name="scan_camera">ছবি তুলুন</string>
+    <string name="scan_gallery">গ্যালারি</string>
+    <string name="scan_consent_title">ছবি পড়তে ইন্টারনেট লাগবে</string>
+    <string name="scan_consent_body">প্রেসক্রিপশনের ছবিটি পড়ার জন্য একটি AI সেবায় পাঠানো হবে। ছবি বা ফলাফল আমরা কোথাও রাখি না। AI ভুল পড়তে পারে, তাই যোগ করার আগে প্রতিটি ওষুধ কাগজের সাথে মিলিয়ে নিন।</string>
+    <string name="scan_working">প্রেসক্রিপশন পড়া হচ্ছে…</string>
     <string name="scan_not_prescription">এটি প্রেসক্রিপশন বলে মনে হচ্ছে না</string>
-    <string name="scan_weekly">সপ্তাহে একবার</string>
-    <string name="scan_monthly">মাসে একবার</string>
     <string name="scan_as_needed">প্রয়োজনে</string>
-    <string name="scan_check_this">⚠ কাগজের সাথে মিলিয়ে দেখুন</string>
     <string name="scan_left_today">আজ আর %1$s বার স্ক্যান করা যাবে</string>
     <string name="scan_error_offline">ইন্টারনেট সংযোগ নেই</string>
     <string name="scan_error_limit">আজকের স্ক্যানের সীমা শেষ, কাল আবার চেষ্টা করুন</string>
     <string name="scan_error_busy">এখন স্ক্যান করা যাচ্ছে না, পরে চেষ্টা করুন</string>
     <string name="scan_error_image">ছবিটি খোলা যায়নি</string>
     <string name="scan_error_failed">স্ক্যান ব্যর্থ হয়েছে, আবার চেষ্টা করুন</string>
+
+    <!-- review -->
+    <string name="review_title">মিলিয়ে দেখুন</string>
+    <string name="review_intro">AI যা পড়েছে নিচে আছে। প্রতিটি ওষুধ কাগজের সাথে মিলিয়ে নিন, ভুল থাকলে ঠিক করুন বা বাদ দিন।</string>
+    <string name="review_nothing_found">কোনো ওষুধ পাওয়া যায়নি। নিচে থেকে নিজে যোগ করতে পারেন।</string>
+    <string name="review_notes">AI এর মন্তব্য: %1$s</string>
+    <string name="review_include">যোগ করা হবে</string>
+    <string name="review_excluded">বাদ দেওয়া হয়েছে</string>
+    <string name="review_read_as">AI পড়েছে: %1$s</string>
+    <string name="review_did_you_mean">এটা কি এর কোনোটি? চাপ দিলে নাম বদলাবে</string>
+    <string name="review_when">কখন</string>
+    <string name="review_written">(কাগজে: %1$s)</string>
+    <string name="review_pick_time">অন্তত একটি সময় বেছে নিন</string>
+    <string name="review_duration">মেয়াদ (কাগজে লেখা): %1$s — শেষ হলে নিজে মুছে দিন</string>
+    <string name="review_checked">কাগজের সাথে মিলিয়ে দেখেছি</string>
+    <string name="review_incomplete">প্রতিটি ওষুধের সময় বেছে নিন, আর লাল লেখাগুলো মিলিয়ে টিক দিন</string>
+    <string name="review_import">সময়সূচিতে যোগ করুন (%1$sটি)</string>
+    <string name="review_add_missing">বাদ পড়া ওষুধ যোগ করুন</string>
+    <string name="review_done">%1$sটি ওষুধ যোগ হয়েছে</string>
+    <string name="review_done_new_slots">নতুন সময়ের ঘর তৈরি হয়েছে। আজ ট্যাবে গিয়ে সময় ঠিক করে দিন, তার আগে অ্যালার্ম বাজবে না।</string>
+
+    <!-- family: patient side -->
+    <string name="family_my_guardians">আমার অভিভাবক</string>
+    <string name="family_share_desc">পরিবারের কেউ নিজের ফোন থেকে দেখতে পারবেন আপনি ওষুধ খেয়েছেন কিনা, ওষুধ ফুরিয়ে আসছে কিনা, আর দরকারে সময়সূচি ঠিক করে দিতে পারবেন। ওষুধ বাদ গেলে তাঁর ফোনে খবর যাবে।</string>
+    <string name="family_add_guardian">অভিভাবক যোগ করুন</string>
+    <string name="family_add_another">আরেকজন যোগ করুন</string>
+    <string name="family_name_title">আপনাকে পরিবারে কী নামে চেনে?</string>
+    <string name="family_name_label">যেমন: আম্মা, নানু</string>
+    <string name="family_code_intro">অভিভাবকের ফোনে এই অ্যাপ খুলে পরিবার → কোড দিয়ে যুক্ত হোন, তারপর এই কোডটি লিখুন:</string>
+    <string name="family_code_valid_until">%1$s পর্যন্ত চলবে</string>
+    <string name="family_code_send">কোড পাঠান</string>
+    <string name="family_code_share">ওষুধের সময় অ্যাপে আমার অভিভাবক হতে এই কোডটি লিখুন: %1$s (১৫ মিনিট চলবে)</string>
+    <string name="family_guardians_see">এঁরা আপনার সময়সূচি, ওষুধ খাওয়ার ইতিহাস আর মজুদ দেখতে পান।</string>
+    <string name="family_remove_confirm">%1$s আর আপনার তথ্য দেখতে পারবেন না। সরাবেন?</string>
+    <string name="family_stop">শেয়ার বন্ধ</string>
+    <string name="family_stop_confirm">সব অভিভাবক সরে যাবেন এবং অনলাইনে রাখা আপনার সব তথ্য মুছে যাবে। ফোনের তথ্য থাকবে।</string>
+    <string name="family_stopped">শেয়ার বন্ধ হয়েছে, অনলাইনের তথ্য মুছে ফেলা হয়েছে</string>
+
+    <!-- family: guardian side -->
+    <string name="family_i_look_after">যাদের দেখাশোনা করি</string>
+    <string name="family_guardian_desc">পরিবারের কারো ওষুধ দূর থেকে দেখতে Google দিয়ে সাইন ইন করুন, তারপর তাঁর ফোনে দেখানো কোডটি লিখুন।</string>
+    <string name="google_sign_in">Google দিয়ে সাইন ইন</string>
+    <string name="google_no_account">এই ফোনে Google অ্যাকাউন্ট পাওয়া যায়নি</string>
+    <string name="google_failed">সাইন ইন হয়নি, আবার চেষ্টা করুন</string>
+    <string name="google_in_use_while_sharing">এই Google অ্যাকাউন্ট অন্য ফোনে অভিভাবক হিসেবে ব্যবহার হচ্ছে। এই ফোন পরিবারের সাথে তথ্য শেয়ার করছে, তাই অন্য একটি Google অ্যাকাউন্ট ব্যবহার করুন।</string>
+    <string name="family_signed_in_as">সাইন ইন: %1$s</string>
+    <string name="family_none_linked">এখনো কেউ যুক্ত নেই</string>
+    <string name="family_enter_code">কোড দিয়ে যুক্ত হোন</string>
+    <string name="family_code_label">৮ অক্ষরের কোড</string>
+    <string name="link_done">যুক্ত হয়েছে</string>
+    <string name="link_bad_code">কোডটি ভুল বা মেয়াদ শেষ। নতুন কোড চেয়ে নিন।</string>
+    <string name="link_own_code">এটি এই ফোনেরই কোড। অভিভাবকের ফোনে লিখুন।</string>
+    <string name="link_failed">যুক্ত করা যায়নি, ইন্টারনেট দেখে আবার চেষ্টা করুন</string>
+    <string name="family_unnamed">নাম নেই</string>
+    <string name="family_no_data">এখনো কোনো তথ্য আসেনি। রোগীর ফোনে ইন্টারনেট চালু করে অ্যাপটি একবার খুলতে বলুন।</string>
+    <string name="family_status">অবস্থা</string>
+    <string name="family_last_seen">শেষ খবর: %1$s</string>
+    <string name="family_never_seen">এখনো খবর আসেনি</string>
+    <string name="family_quiet_hint">ফোন বন্ধ, ইন্টারনেট নেই, বা অ্যাপ বন্ধ করা হয়ে থাকতে পারে। একবার ফোন করে খোঁজ নিন।</string>
+    <string name="health_notifications">নোটিফিকেশনের অনুমতি বন্ধ</string>
+    <string name="health_exact">সঠিক সময়ে অ্যালার্মের অনুমতি বন্ধ</string>
+    <string name="health_fullscreen">লক স্ক্রিনে অ্যালার্মের অনুমতি বন্ধ</string>
+    <string name="health_battery">ব্যাটারি সাশ্রয় চালু, অ্যালার্ম আটকে যেতে পারে</string>
+    <string name="health_time_unset">কোনো সময়ের ঘরে সময় ঠিক করা নেই</string>
+    <string name="health_fix_hint">রোগীর ফোনে অ্যাপ খুললে আজ ট্যাবে ঠিক করার বোতাম আছে।</string>
+    <string name="family_pending">%1$sটি পরিবর্তন রোগীর ফোনে পৌঁছানোর অপেক্ষায়</string>
+    <string name="family_adherence">নিয়মিত খাচ্ছেন কিনা</string>
+    <string name="family_adherence_line">শেষ %1$s দিনে %2$s%% (%4$s বারের মধ্যে %3$s বার)</string>
+    <string name="family_adherence_none">শেষ %1$s দিনের তথ্য নেই</string>
+    <string name="family_missed_week">এই সপ্তাহে %1$s বার বাদ গেছে</string>
+    <string name="family_schedule">সময়সূচি</string>
+    <string name="family_change_time">সময় বদলান</string>
+    <string name="family_add_to">%1$s এ ওষুধ যোগ</string>
+    <string name="edit_sent">পাঠানো হয়েছে। রোগীর ফোন ইন্টারনেটে এলে চালু হবে।</string>
+    <string name="family_unlink">দেখাশোনা বন্ধ করুন</string>
+    <string name="family_unlink_confirm">%1$s এর তথ্য আর দেখতে পারবেন না। বন্ধ করবেন?</string>
+    <string name="family_offline">কাজটি হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন।</string>
+
+    <!-- family notifications -->
+    <string name="channel_family_name">পরিবারের খবর</string>
+    <string name="channel_family_desc">ওষুধ বাদ গেলে বা অভিভাবক সময়সূচি বদলালে জানাবে</string>
+    <string name="notify_missed_title">%1$s ওষুধ খাননি</string>
+    <string name="notify_missed_body">%1$s (%2$s): %3$s</string>
+    <string name="notify_quiet_title">%1$s এর ফোন থেকে খবর নেই</string>
+    <string name="notify_quiet_body">শেষ খবর %1$s। ফোন বন্ধ বা ইন্টারনেট না থাকতে পারে, একবার ফোন করে খোঁজ নিন।</string>
+    <string name="notify_schedule_changed">অভিভাবক সময়সূচি বদলেছেন</string>
+
+    <!-- credits -->
+    <string name="credits_title">কৃতজ্ঞতা</string>
+    <string name="credits_drugs">ওষুধের নামের তালিকা: Medicinal Products in Bangladesh – A Dataset of Generic and Brand Names, Dosage Strengths, and Manufacturers (University of Dhaka, Mendeley Data), CC BY 4.0। https://data.mendeley.com/datasets/zhtvkny53n</string>
+    <string name="credits_scan">প্রেসক্রিপশন AI দিয়ে পড়া হয়, ভুল হতে পারে। সবসময় কাগজের সাথে মিলিয়ে নিন।</string>
 </resources>

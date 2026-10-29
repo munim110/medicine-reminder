@@ -2,10 +2,8 @@ package com.medremind.app.ui
 
 import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
-import android.os.PowerManager
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -37,20 +35,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.medremind.app.R
-import com.medremind.app.alarm.AlarmScheduler
-import com.medremind.app.alarm.Notifications
+import com.medremind.app.alarm.SetupHealth
 import com.medremind.app.data.DoseStatus
+import com.medremind.app.data.Quantities
 
 @Composable
 fun TodayScreen(vm: MedViewModel, modifier: Modifier = Modifier) {
     val rows by vm.todayRows.collectAsStateWithLifecycle()
+    val medicines by vm.medicines.collectAsStateWithLifecycle()
+    val offerClearLegacySeed by vm.offerClearLegacySeed.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val resources = LocalResources.current
     var pickTimeFor by remember { mutableStateOf<Long?>(null) }
 
     LazyColumn(
@@ -58,12 +60,32 @@ fun TodayScreen(vm: MedViewModel, modifier: Modifier = Modifier) {
         contentPadding = PaddingValues(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
+        if (offerClearLegacySeed) {
+            item(key = "legacy-seed") {
+                LegacySeedCard(onClear = vm::clearLegacySeed, onKeep = vm::keepLegacySeed)
+            }
+        }
+
         item { SetupBanners() }
+
+        val low = medicines.filter { it.isLowOnStock }
+        if (low.isNotEmpty()) {
+            item(key = "low-stock") {
+                ActionBanner(
+                    title = stringResource(R.string.low_stock_title, Bn.num(low.size)),
+                    body = low.joinToString("\n") { m ->
+                        resources.getString(R.string.shopping_line, m.medicine.name, Bn.num(m.daysLeft ?: 0))
+                    },
+                    actionLabel = stringResource(R.string.share_shopping_list),
+                    onAction = { shareShoppingList(context, medicines) },
+                )
+            }
+        }
 
         items(rows.filter { !it.group.group.isTimeSet }, key = { "unset-${it.group.group.id}" }) { row ->
             ActionBanner(
-                title = stringResource(R.string.morning_prompt_title),
-                body = stringResource(R.string.morning_prompt_body),
+                title = stringResource(R.string.slot_time_prompt_title, row.group.group.label),
+                body = stringResource(R.string.slot_time_prompt_body),
                 actionLabel = stringResource(R.string.set_time),
                 onAction = { pickTimeFor = row.group.group.id },
             )
@@ -145,9 +167,10 @@ private fun DoseCard(
 
             Spacer(Modifier.height(8.dp))
 
-            row.group.sortedItems.forEach { item ->
+            row.due.forEach { entry ->
                 Text(
-                    text = "• ${item.medicineName} — ${stringResource(foodRuleLabel(item.foodRule))}",
+                    text = "• ${Quantities.describe(entry.name, entry.item.quantity)} — " +
+                        stringResource(foodRuleLabel(entry.item.foodRule)),
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
@@ -160,6 +183,34 @@ private fun DoseCard(
                     Button(onClick = onTaken) { Text(stringResource(R.string.action_taken)) }
                     TextButton(onClick = onSkip) { Text(stringResource(R.string.action_skip)) }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LegacySeedCard(onClear: () -> Unit, onKeep: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(
+                text = stringResource(R.string.legacy_seed_title),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            Text(
+                text = stringResource(R.string.legacy_seed_body),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+                Button(onClick = onClear) { Text(stringResource(R.string.legacy_seed_clear)) }
+                TextButton(onClick = onKeep) { Text(stringResource(R.string.legacy_seed_keep)) }
             }
         }
     }
@@ -203,19 +254,11 @@ private fun SetupBanners() {
         ActivityResultContracts.RequestPermission(),
     ) { tick++ }
 
-    val needsNotification = remember(tick) {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS,
-            ) != PackageManager.PERMISSION_GRANTED
-    }
-    val needsExact = remember(tick) { !AlarmScheduler.canScheduleExact(context) }
-    val needsFullScreen = remember(tick) { !Notifications.canUseFullScreen(context) }
-    val needsBattery = remember(tick) {
-        context.getSystemService(PowerManager::class.java)
-            ?.isIgnoringBatteryOptimizations(context.packageName) == false
-    }
+    val health = remember(tick) { SetupHealth.check(context) }
+    val needsNotification = !health.notifications
+    val needsExact = !health.exactAlarms
+    val needsFullScreen = !health.fullScreen
+    val needsBattery = !health.batteryUnrestricted
 
     Column {
         if (needsNotification) {

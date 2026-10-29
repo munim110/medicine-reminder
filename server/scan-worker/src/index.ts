@@ -1,11 +1,9 @@
-import { Buffer } from "node:buffer";
-import { verifyFirebaseIdToken } from "./auth";
-import { parseScanResult, SYSTEM_PROMPT, USER_PROMPT } from "./prescription";
+import { verifyFirebaseIdToken } from "./auth.ts";
+import { parseScanResult } from "./prescription.ts";
+import { type ImageType, type ProviderEnv, providerChain } from "./providers.ts";
 
-export interface Env {
+export interface Env extends ProviderEnv {
   DB: D1Database;
-  DEEPSEEK_API_KEY: string;
-  DEEPSEEK_MODEL: string;
   FIREBASE_PROJECT_ID: string;
   DAILY_SCANS_PER_USER: string;
   DAILY_SCANS_TOTAL: string;
@@ -33,56 +31,44 @@ export default {
 
     const type = (request.headers.get("Content-Type") ?? "").split(";")[0].trim();
     if (!IMAGE_TYPES.includes(type)) return error(415, "unsupported_image_type");
+    // Refuse an oversized upload before buffering it: the Worker's memory is far smaller than
+    // the largest body Cloudflare accepts.
+    if (Number(request.headers.get("Content-Length") ?? 0) > MAX_IMAGE_BYTES) return error(413, "image_too_large");
     const image = await request.arrayBuffer();
     if (image.byteLength === 0 || image.byteLength > MAX_IMAGE_BYTES) return error(413, "image_too_large");
 
-    const quota = await takeQuota(env, uid);
+    let quota: Quota;
+    try {
+      quota = await takeQuota(env, uid);
+    } catch (e) {
+      console.error("quota unavailable", String((e as Error).message));
+      return error(503, "service_busy");
+    }
     if (!quota.ok) return error(429, quota.reason);
 
-    const upstream = await fetch("https://api.deepseek.com/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${env.DEEPSEEK_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: env.DEEPSEEK_MODEL,
-        // Thinking is on by default. On real handwriting it used ~14k tokens (15× the cost, a minute
-        // of waiting) without reading names any better, and could exhaust max_tokens with no answer.
-        thinking: { type: "disabled" },
-        temperature: 0,
-        max_tokens: 4000,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: [
-              {
-                type: "image_url",
-                image_url: { url: `data:${type};base64,${Buffer.from(image).toString("base64")}`, detail: "high" },
-              },
-              { type: "text", text: USER_PROMPT },
-            ],
-          },
-        ],
-      }),
-    });
-    if (!upstream.ok) {
-      // The error body describes the request shape, not the image, so it is safe to log.
-      console.error("deepseek failed", upstream.status, (await upstream.text()).slice(0, 500));
-      return error(502, "scan_failed");
+    // Providers are tried in order (AI_PROVIDER, then AI_FALLBACK). A provider error, an empty or
+    // cut-off reply, or one with no JSON in it moves on; a scan nobody could read is given back
+    // to the person.
+    for (const provider of providerChain(env)) {
+      let content: string;
+      try {
+        content = await provider.transcribe(image, type as ImageType);
+      } catch (e) {
+        console.error("provider failed", provider.name, String((e as Error).message));
+        continue;
+      }
+      try {
+        return Response.json({ ...parseScanResult(content), scansLeftToday: quota.left });
+      } catch {
+        console.error("unparseable reply", provider.name);
+      }
     }
-
-    const completion = (await upstream.json()) as { choices?: { message?: { content?: string } }[] };
-    try {
-      const result = parseScanResult(completion.choices?.[0]?.message?.content ?? "");
-      return Response.json({ ...result, scansLeftToday: quota.left });
-    } catch {
-      console.error("deepseek returned unparseable content");
-      return error(502, "scan_unreadable");
-    }
+    await giveBack(env, uid, quota.day).catch(() => undefined);
+    return error(502, "scan_failed");
   },
 } satisfies ExportedHandler<Env>;
 
-type Quota = { ok: true; left: number } | { ok: false; reason: string };
+type Quota = { ok: true; left: number; day: string } | { ok: false; reason: string };
 
 /** Counts this scan against the user's and everyone's daily limit. */
 async function takeQuota(env: Env, uid: string): Promise<Quota> {
@@ -93,19 +79,29 @@ async function takeQuota(env: Env, uid: string): Promise<Quota> {
   const used = await increment(env.DB, uid, day);
   if (used > perUser) return { ok: false, reason: "daily_limit_reached" };
   if ((await increment(env.DB, "*", day)) > Number(env.DAILY_SCANS_TOTAL)) {
+    // Refused for everyone: don't charge it to this person.
+    await increment(env.DB, uid, day, -1);
     return { ok: false, reason: "service_busy" };
   }
-  return { ok: true, left: perUser - used };
+  return { ok: true, left: perUser - used, day };
 }
 
-async function increment(db: D1Database, uid: string, day: string): Promise<number> {
+/**
+ * Returns a scan that produced nothing to the person, so failures never use up their allowance.
+ * The global count keeps it: the providers were still paid, and it is what bounds the spend.
+ */
+async function giveBack(env: Env, uid: string, day: string): Promise<void> {
+  await increment(env.DB, uid, day, -1);
+}
+
+async function increment(db: D1Database, uid: string, day: string, by = 1): Promise<number> {
   const row = await db
     .prepare(
-      `INSERT INTO usage (uid, day, count) VALUES (?1, ?2, 1)
-       ON CONFLICT (uid, day) DO UPDATE SET count = count + 1
+      `INSERT INTO usage (uid, day, count) VALUES (?1, ?2, MAX(?3, 0))
+       ON CONFLICT (uid, day) DO UPDATE SET count = MAX(count + ?3, 0)
        RETURNING count`,
     )
-    .bind(uid, day)
+    .bind(uid, day, by)
     .first<{ count: number }>();
   return row?.count ?? Number.MAX_SAFE_INTEGER;
 }

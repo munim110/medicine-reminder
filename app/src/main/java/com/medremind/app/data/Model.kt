@@ -8,6 +8,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import androidx.room.TypeConverter
+import java.time.LocalDate
 
 /** When a medicine must be taken relative to a meal. */
 enum class FoodRule {
@@ -15,6 +16,13 @@ enum class FoodRule {
     BEFORE_FOOD,
     AFTER_FOOD,
     ANY,
+}
+
+/** How often a scheduled medicine is due in its slot. */
+enum class Frequency {
+    DAILY,
+    WEEKLY,
+    MONTHLY,
 }
 
 /** Outcome of a scheduled dose. */
@@ -39,15 +47,37 @@ data class DoseGroup(
     val enabled: Boolean = true,
     val sortOrder: Int = 0,
     /**
-     * When this slot started being tracked. Doses scheduled before it are never written off as
-     * missed — the app cannot know what happened before it was managing them.
+     * When this slot's current schedule started being tracked: creation, and again on any change
+     * that can make it due on days it was not (a time, a medicine, a frequency, re-enabling).
+     * Doses scheduled before it are never written off as missed — the past is judged by today's
+     * schedule, so without this a new medicine would backfill a week of misses.
      */
     @ColumnInfo(defaultValue = "0") val createdAt: Long = System.currentTimeMillis(),
 ) {
     val isTimeSet: Boolean get() = hour != null && minute != null
 }
 
-/** A single medicine within a [DoseGroup]. */
+/**
+ * A medicine, shared by every slot it is taken in, so renaming it or tracking its stock happens once.
+ * Deleting it removes it from every slot.
+ */
+@Entity(tableName = "medicines")
+data class Medicine(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    /** As written on the prescription, usually brand and strength, e.g. `Janmet 50/500`. */
+    val name: String,
+    /** Active ingredient, when known from the drug list. Lets the family tell brands apart. */
+    val genericName: String? = null,
+    /** Tablet, capsule, syrup… as the drug list or prescription gives it. Display only. */
+    val form: String? = null,
+    /** Free-text directions copied from the prescription. */
+    val instructions: String? = null,
+    /** Units on hand. Null when refills are not tracked for this medicine. */
+    val stock: Double? = null,
+    @ColumnInfo(defaultValue = "0") val createdAt: Long = System.currentTimeMillis(),
+)
+
+/** One medicine in one [DoseGroup]: how much, relative to food, and on which days. */
 @Entity(
     tableName = "dose_items",
     foreignKeys = [
@@ -57,16 +87,43 @@ data class DoseGroup(
             childColumns = ["groupId"],
             onDelete = ForeignKey.CASCADE,
         ),
+        ForeignKey(
+            entity = Medicine::class,
+            parentColumns = ["id"],
+            childColumns = ["medicineId"],
+            onDelete = ForeignKey.CASCADE,
+        ),
     ],
-    indices = [Index("groupId")],
+    indices = [Index("groupId"), Index("medicineId")],
 )
 data class DoseItem(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val groupId: Long,
-    val medicineName: String,
+    val medicineId: Long,
+    /** Units per dose: 0.5 for half a tablet, 2 for two. */
+    @ColumnInfo(defaultValue = "1") val quantity: Double = 1.0,
     val foodRule: FoodRule,
+    @ColumnInfo(defaultValue = "DAILY") val frequency: Frequency = Frequency.DAILY,
+    /** ISO day of week, 1 = Monday … 7 = Sunday. Used when [frequency] is WEEKLY. */
+    val dayOfWeek: Int? = null,
+    /** 1–31. Used when [frequency] is MONTHLY; a short month uses its last day instead. */
+    val dayOfMonth: Int? = null,
     val sortOrder: Int = 0,
-)
+) {
+    fun isDueOn(date: LocalDate): Boolean = when (frequency) {
+        Frequency.DAILY -> true
+        Frequency.WEEKLY -> date.dayOfWeek.value == (dayOfWeek ?: return false)
+        Frequency.MONTHLY -> date.dayOfMonth == (dayOfMonth ?: return false).coerceIn(1, date.lengthOfMonth())
+    }
+
+    /** Average units used per day, for estimating when the stock runs out. */
+    val unitsPerDay: Double
+        get() = when (frequency) {
+            Frequency.DAILY -> quantity
+            Frequency.WEEKLY -> quantity / 7
+            Frequency.MONTHLY -> quantity * 12 / 365
+        }
+}
 
 /**
  * Record of what happened to one scheduled dose.
@@ -91,9 +148,9 @@ data class DoseLog(
     val status: DoseStatus,
     val label: String,
     @ColumnInfo(defaultValue = "") val medicines: String = "",
-    /** Stable id so a future server sync can deduplicate rows across devices. */
+    /** Unused since sync keys rows by slot and date (see `CloudSync`); kept to avoid a table rebuild. */
     @ColumnInfo(defaultValue = "") val uuid: String = java.util.UUID.randomUUID().toString(),
-    /** False until this row has been pushed to the remote admin dashboard. */
+    /** False until this row has been uploaded for the family to see. */
     @ColumnInfo(defaultValue = "0") val synced: Boolean = false,
 )
 
@@ -140,13 +197,52 @@ data class AlarmSettings(
     }
 }
 
+/** A [DoseItem] with the medicine it refers to. */
+data class SlotMedicine(
+    @Embedded val item: DoseItem,
+    @Relation(parentColumn = "medicineId", entityColumn = "id")
+    val medicine: Medicine,
+) {
+    val name: String get() = medicine.name
+}
+
 /** A dose slot together with its medicines, ordered for display. */
 data class GroupWithItems(
     @Embedded val group: DoseGroup,
-    @Relation(parentColumn = "id", entityColumn = "groupId")
+    @Relation(entity = DoseItem::class, parentColumn = "id", entityColumn = "groupId")
+    val items: List<SlotMedicine> = emptyList(),
+) {
+    val sortedItems: List<SlotMedicine> get() = items.sortedBy { it.item.sortOrder }
+
+    /** What this slot asks for on [date]; weekly and monthly medicines appear only on their day. */
+    fun itemsDueOn(date: LocalDate): List<SlotMedicine> = sortedItems.filter { it.item.isDueOn(date) }
+
+    /** A slot rings only on days it has something to take. */
+    fun isDueOn(date: LocalDate): Boolean = items.any { it.item.isDueOn(date) }
+}
+
+/** A medicine with every slot entry that uses it. */
+data class MedicineWithItems(
+    @Embedded val medicine: Medicine,
+    @Relation(parentColumn = "id", entityColumn = "medicineId")
     val items: List<DoseItem> = emptyList(),
 ) {
-    val sortedItems: List<DoseItem> get() = items.sortedBy { it.sortOrder }
+    val unitsPerDay: Double get() = items.sumOf { it.unitsPerDay }
+
+    /** Whole days of stock left at the scheduled rate, or null when not tracked or not scheduled. */
+    val daysLeft: Int?
+        get() {
+            val stock = medicine.stock ?: return null
+            val perDay = unitsPerDay
+            return if (perDay <= 0.0) null else (stock / perDay).toInt()
+        }
+
+    val isLowOnStock: Boolean get() = daysLeft?.let { it <= LOW_STOCK_DAYS } ?: false
+
+    companion object {
+        /** Warn this many days ahead: time enough to buy more without a gap. */
+        const val LOW_STOCK_DAYS = 5
+    }
 }
 
 class Converters {
@@ -156,6 +252,13 @@ class Converters {
     @TypeConverter
     fun toFoodRule(value: String): FoodRule =
         runCatching { FoodRule.valueOf(value) }.getOrDefault(FoodRule.ANY)
+
+    @TypeConverter
+    fun fromFrequency(value: Frequency): String = value.name
+
+    @TypeConverter
+    fun toFrequency(value: String): Frequency =
+        runCatching { Frequency.valueOf(value) }.getOrDefault(Frequency.DAILY)
 
     @TypeConverter
     fun fromDoseStatus(value: DoseStatus): String = value.name

@@ -21,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -32,7 +31,6 @@ import com.medremind.app.data.AlarmSettings
 @Composable
 fun SettingsScreen(vm: MedViewModel, modifier: Modifier = Modifier) {
     val settings by vm.settings.collectAsStateWithLifecycle()
-    val context = LocalContext.current
 
     LazyColumn(
         modifier = modifier,
@@ -74,7 +72,7 @@ fun SettingsScreen(vm: MedViewModel, modifier: Modifier = Modifier) {
             )
         }
         item { CyclePreview(settings) }
-        if (isDebugBuild(context)) item { ScanTestCard() }
+        item { Credits() }
     }
 }
 
@@ -174,5 +172,24 @@ private fun CyclePreview(settings: AlarmSettings) {
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
+    }
+}
+
+/** The drug list's licence (CC BY 4.0) requires this credit wherever the data is used. */
+@Composable
+private fun Credits() {
+    Column(Modifier.padding(horizontal = 16.dp, vertical = 16.dp)) {
+        Text(stringResource(R.string.credits_title), style = MaterialTheme.typography.titleSmall)
+        Text(
+            text = stringResource(R.string.credits_drugs),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = stringResource(R.string.credits_scan),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp),
+        )
     }
 }

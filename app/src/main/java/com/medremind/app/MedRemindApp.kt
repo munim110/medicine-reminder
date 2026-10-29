@@ -5,6 +5,9 @@ import android.util.Log
 import com.medremind.app.alarm.AlarmScheduler
 import com.medremind.app.alarm.Notifications
 import com.medremind.app.cloud.CloudSession
+import com.medremind.app.cloud.Guardian
+import com.medremind.app.cloud.PatientSync
+import com.medremind.app.data.AppDatabase
 import com.medremind.app.data.ScheduleRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,8 +31,19 @@ class MedRemindApp : Application() {
 
         // Separate from the alarm work above, so a slow or failed sign-in can never delay arming.
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            runCatching { CloudSession.ensureSignedIn() }
-                .onFailure { Log.w("MedRemindApp", "Anonymous sign-in failed; will retry on next use", it) }
+            runCatching {
+                CloudSession.ensureSignedIn()
+                if (CloudSession.isGoogle) Guardian.startWatching(this@MedRemindApp)
+            }.onFailure { Log.w("MedRemindApp", "Anonymous sign-in failed; will retry on next use", it) }
+        }
+
+        // Any change to doses or the schedule is shared with the family, if sharing is on. Covers
+        // every writer (alarm receivers, notification buttons, the UI) without each one remembering.
+        PatientSync.schedulePeriodic(this)
+        CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+            AppDatabase.get(this@MedRemindApp).invalidationTracker
+                .createFlow("dose_logs", "dose_items", "medicines", "dose_groups", emitInitialState = false)
+                .collect { PatientSync.request(this@MedRemindApp) }
         }
     }
 }

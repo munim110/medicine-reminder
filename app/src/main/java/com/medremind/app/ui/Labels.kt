@@ -2,8 +2,11 @@ package com.medremind.app.ui
 
 import androidx.annotation.StringRes
 import com.medremind.app.R
+import com.medremind.app.data.DoseItem
 import com.medremind.app.data.DoseStatus
 import com.medremind.app.data.FoodRule
+import com.medremind.app.data.Frequency
+import com.medremind.app.data.Quantities
 import java.time.LocalDate
 
 @StringRes
@@ -22,6 +25,17 @@ fun statusLabel(status: DoseStatus?): Int = when (status) {
     null -> R.string.status_pending
 }
 
+/** `প্রতি শুক্রবার`, `প্রতি মাসের ৫ তারিখ`, or null for daily doses, which need no label. */
+fun frequencyLabel(item: DoseItem): String? = when (item.frequency) {
+    Frequency.DAILY -> null
+    Frequency.WEEKLY -> item.dayOfWeek?.let { "প্রতি ${Bn.weekday(it)}" }
+    Frequency.MONTHLY -> item.dayOfMonth?.let { "প্রতি মাসের ${Bn.num(it)} তারিখ" }
+}
+
+/** One line under a medicine: `½টি · খাবার পরে · প্রতি শুক্রবার`. */
+fun doseSummary(item: DoseItem, foodLabel: String): String =
+    listOfNotNull("${Bn.qty(item.quantity)}টি", foodLabel, frequencyLabel(item)).joinToString(" · ")
+
 /** Bengali numerals and date/time wording, so the UI reads naturally alongside the chart. */
 object Bn {
 
@@ -37,6 +51,24 @@ object Bn {
     }
 
     fun num(value: Int): String = digits(value.toString())
+
+    fun qty(value: Double): String = Quantities.bengali(value)
+
+    private val WEEKDAYS = arrayOf("সোমবার", "মঙ্গলবার", "বুধবার", "বৃহস্পতিবার", "শুক্রবার", "শনিবার", "রবিবার")
+
+    /** ISO day of week, 1 = Monday. */
+    fun weekday(isoDay: Int): String = WEEKDAYS[(isoDay - 1).coerceIn(0, 6)]
+
+    /** `এইমাত্র`, `১৫ মিনিট আগে`, `৩ ঘণ্টা আগে`, `২ দিন আগে`. */
+    fun ago(millis: Long, now: Long = System.currentTimeMillis()): String {
+        val minutes = ((now - millis) / 60_000).coerceAtLeast(0)
+        return when {
+            minutes < 2 -> "এইমাত্র"
+            minutes < 60 -> "${num(minutes.toInt())} মিনিট আগে"
+            minutes < 48 * 60 -> "${num((minutes / 60).toInt())} ঘণ্টা আগে"
+            else -> "${num((minutes / (24 * 60)).toInt())} দিন আগে"
+        }
+    }
 
     /** e.g. `সকাল ৮:০০`, `দুপুর ২:৩০`, `রাত ১০:০০`. */
     fun time(hour: Int, minute: Int): String {
